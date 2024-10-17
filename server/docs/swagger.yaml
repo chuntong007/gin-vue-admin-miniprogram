@@ -1,4 +1,7 @@
 definitions:
+  common.JSONMap:
+    additionalProperties: true
+    type: object
   config.AliyunOSS:
     properties:
       access-key-id:
@@ -409,6 +412,9 @@ definitions:
       db:
         description: 单实例模式下redis的哪个数据库
         type: integer
+      name:
+        description: 代表当前实例的名字
+        type: string
       password:
         description: 密码
         type: string
@@ -470,6 +476,10 @@ definitions:
         $ref: '#/definitions/config.Qiniu'
       redis:
         $ref: '#/definitions/config.Redis'
+      redis-list:
+        items:
+          $ref: '#/definitions/config.Redis'
+        type: array
       sqlite:
         $ref: '#/definitions/config.Sqlite'
       system:
@@ -596,6 +606,9 @@ definitions:
         type: boolean
       use-redis:
         description: 使用redis
+        type: boolean
+      use-strict-auth:
+        description: 使用树形角色分配模式
         type: boolean
     type: object
   config.TencentCOS:
@@ -800,6 +813,144 @@ definitions:
         type: array
     type: object
   request.AutoCode:
+    properties:
+      abbreviation:
+        description: Struct简称
+        example: Struct简称
+        type: string
+      autoCreateApiToSql:
+        description: 是否自动创建api
+        example: false
+        type: boolean
+      autoCreateBtnAuth:
+        description: 是否自动创建按钮权限
+        example: false
+        type: boolean
+      autoCreateMenuToSql:
+        description: 是否自动创建menu
+        example: false
+        type: boolean
+      autoCreateResource:
+        description: 是否自动创建资源标识
+        example: false
+        type: boolean
+      autoMigrate:
+        description: 是否自动迁移表结构
+        example: false
+        type: boolean
+      businessDB:
+        description: 业务数据库
+        example: 业务数据库
+        type: string
+      description:
+        description: Struct中文名称
+        example: Struct中文名称
+        type: string
+      fields:
+        items:
+          $ref: '#/definitions/request.AutoCodeField'
+        type: array
+      gvaModel:
+        description: 是否使用gva默认Model
+        example: false
+        type: boolean
+      humpPackageName:
+        description: go文件名称
+        example: go文件名称
+        type: string
+      onlyTemplate:
+        description: 是否只生成模板
+        example: false
+        type: boolean
+      package:
+        type: string
+      packageName:
+        description: 文件名称
+        example: 文件名称
+        type: string
+      primaryField:
+        $ref: '#/definitions/request.AutoCodeField'
+      structName:
+        description: Struct名称
+        example: Struct名称
+        type: string
+      tableName:
+        description: 表名
+        example: 表名
+        type: string
+    type: object
+  request.AutoCodeField:
+    properties:
+      checkDataSource:
+        description: 是否检查数据源
+        type: boolean
+      clearable:
+        description: 是否可清空
+        type: boolean
+      columnName:
+        description: 数据库字段
+        type: string
+      comment:
+        description: 数据库字段描述
+        type: string
+      dataSource:
+        allOf:
+        - $ref: '#/definitions/request.DataSource'
+        description: 数据源
+      dataTypeLong:
+        description: 数据库字段长度
+        type: string
+      defaultValue:
+        description: 是否必填
+        type: string
+      desc:
+        description: 是否前端详情
+        type: boolean
+      dictType:
+        description: 字典
+        type: string
+      errorText:
+        description: 校验失败文字
+        type: string
+      excel:
+        description: 是否导入/导出
+        type: boolean
+      fieldDesc:
+        description: 中文名
+        type: string
+      fieldIndexType:
+        description: 索引类型
+        type: string
+      fieldJson:
+        description: FieldJson
+        type: string
+      fieldName:
+        description: Field名
+        type: string
+      fieldSearchHide:
+        description: 是否隐藏查询条件
+        type: boolean
+      fieldSearchType:
+        description: 搜索条件
+        type: string
+      fieldType:
+        description: Field数据类型
+        type: string
+      form:
+        description: Front           bool        `json:"front"`           // 是否前端可见
+        type: boolean
+      primaryKey:
+        description: 是否主键
+        type: boolean
+      require:
+        description: 是否必填
+        type: boolean
+      sort:
+        description: 是否增加排序
+        type: boolean
+      table:
+        description: 是否前端表格列
+        type: boolean
     type: object
   request.CasbinInReceive:
     properties:
@@ -827,6 +978,18 @@ definitions:
         type: string
       password:
         description: 密码
+        type: string
+    type: object
+  request.DataSource:
+    properties:
+      association:
+        description: 关联关系 1 一对一 2 一对多
+        type: integer
+      label:
+        type: string
+      table:
+        type: string
+      value:
         type: string
     type: object
   request.Empty:
@@ -1583,17 +1746,17 @@ definitions:
         description: 主键ID
         type: integer
       authorities:
+        description: 多用户角色
         items:
           $ref: '#/definitions/system.SysAuthority'
         type: array
       authority:
-        $ref: '#/definitions/system.SysAuthority'
+        allOf:
+        - $ref: '#/definitions/system.SysAuthority'
+        description: 用户角色
       authorityId:
         description: 用户角色ID
         type: integer
-      baseColor:
-        description: 基础颜色
-        type: string
       createdAt:
         description: 创建时间
         type: string
@@ -1609,11 +1772,12 @@ definitions:
       nickName:
         description: 用户昵称
         type: string
+      originSetting:
+        allOf:
+        - $ref: '#/definitions/common.JSONMap'
+        description: 配置
       phone:
         description: 用户手机号
-        type: string
-      sideMode:
-        description: 用户侧边主题
         type: string
       updatedAt:
         description: 更新时间
@@ -1812,7 +1976,7 @@ paths:
       tags:
       - SysApi
   /api/getApiGroups:
-    post:
+    get:
       consumes:
       - application/json
       produces:
@@ -2079,7 +2243,7 @@ paths:
       tags:
       - Authority
   /authority/updateAuthority:
-    post:
+    put:
       consumes:
       - application/json
       parameters:
@@ -2347,7 +2511,7 @@ paths:
       summary: 获取当前表所有字段
       tags:
       - AutoCode
-  /autoCode/getDatabase:
+  /autoCode/getDB:
     get:
       consumes:
       - application/json
@@ -2504,6 +2668,54 @@ paths:
       summary: 获取package
       tags:
       - AutoCodePackage
+  /autoCode/initAPI:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 打包插件成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+                msg:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 打包插件
+      tags:
+      - AutoCodePlugin
+  /autoCode/initMenu:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 打包插件成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+                msg:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 打包插件
+      tags:
+      - AutoCodePlugin
   /autoCode/installPlugin:
     post:
       consumes:
@@ -2567,7 +2779,7 @@ paths:
       tags:
       - AutoCodeTemplate
   /autoCode/pubPlug:
-    get:
+    post:
       consumes:
       - application/json
       parameters:
@@ -2989,6 +3201,34 @@ paths:
       tags:
       - ExaFileUploadAndDownload
   /fileUploadAndDownload/findFile:
+    get:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Find the file, 查找文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 查找文件,返回包括文件详情
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.FileResponse'
+                msg:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 查找文件
+      tags:
+      - ExaFileUploadAndDownload
     post:
       consumes:
       - multipart/form-data
@@ -3045,6 +3285,32 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 分页文件列表
+      tags:
+      - ExaFileUploadAndDownload
+  /fileUploadAndDownload/importURL:
+    post:
+      parameters:
+      - description: 对象
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/example.ExaFileUploadAndDownload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 导入URL
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                msg:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 导入URL
       tags:
       - ExaFileUploadAndDownload
   /fileUploadAndDownload/removeChunk:
@@ -4670,6 +4936,37 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: 设置用户信息
+      tags:
+      - SysUser
+  /user/SetSelfSetting:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Request body containing the JSON data
+        in: body
+        name: data
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 设置用户配置
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+                msg:
+                  type: string
+              type: object
+      security:
+      - ApiKeyAuth: []
+      summary: 设置用户配置
       tags:
       - SysUser
   /user/admin_register:

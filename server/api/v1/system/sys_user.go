@@ -1,9 +1,10 @@
 package system
 
 import (
-	"gorm.io/datatypes"
 	"strconv"
 	"time"
+
+	"gorm.io/datatypes"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
@@ -420,7 +421,7 @@ func (b *BaseApi) SetSelfInfo(c *gin.Context) {
 // @Security  ApiKeyAuth
 // @accept    application/json
 // @Produce   application/json
-// @Param     data  body      datatypes.JSON
+// @Param data body object true "Request body containing the JSON data"
 // @Success   200   {object}  response.Response{data=map[string]interface{},msg=string}  "设置用户配置"
 // @Router    /user/SetSelfSetting [put]
 func (b *BaseApi) SetSelfSetting(c *gin.Context) {
